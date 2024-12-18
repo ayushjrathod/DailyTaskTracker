@@ -14,7 +14,10 @@ export async function getTaskById(taskId: string): Promise<Task | null> {
   };
 }
 
-export async function updateTaskStatus(taskId: string, status: Record<string, "completed" | "failed">): Promise<void> {
+export async function updateTaskStatus(
+  taskId: string,
+  status: Record<string, "completed" | "failed" | "pending">
+): Promise<void> {
   const client = await clientPromise;
   const database = client.db("dailytasktracker");
   await database.collection("tasks").updateOne({ _id: new ObjectId(taskId) }, { $set: { status } });

@@ -1,6 +1,12 @@
 import { MongoClient, ObjectId } from "mongodb";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+interface Task {
+  id: number;
+  name: string;
+  status: "completed" | "failed";
+}
+
 declare global {
   // eslint-disable-next-line no-var
   var _mongoClientPromise: Promise<MongoClient> | undefined;
@@ -37,7 +43,7 @@ async function fetchTasksFromDB() {
   }
 }
 
-async function saveTaskToDB(task) {
+async function saveTaskToDB(task: Task) {
   try {
     const client = await clientPromise;
     const database = client.db("dailytasktracker");
@@ -55,7 +61,7 @@ async function saveTaskToDB(task) {
   }
 }
 
-async function deleteTaskFromDB(id) {
+async function deleteTaskFromDB(id: string) {
   try {
     const client = await clientPromise;
     const database = client.db("dailytasktracker");
@@ -90,6 +96,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const { id } = req.query;
       console.log("Received task ID to delete:", id);
+
+      if (!id || Array.isArray(id)) {
+        throw new Error("Invalid task ID");
+      }
+
       await deleteTaskFromDB(id);
       res.status(200).json({ message: "Task deleted successfully" });
     } catch (error) {
