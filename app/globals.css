@@ -1,0 +1,6 @@
+/* Remove any conflicting styles related to checkboxes */
+.checkbox-wrapper-61 *,
+.checkbox-wrapper-61 ::after,
+.checkbox-wrapper-61 ::before {
+  box-sizing: border-box;
+}
