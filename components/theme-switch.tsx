@@ -1,13 +1,13 @@
 "use client";
 
-import { FC } from "react";
-import { VisuallyHidden } from "@react-aria/visually-hidden";
 import { useSwitch } from "@nextui-org/switch";
-import { useTheme } from "next-themes";
 import { useIsSSR } from "@react-aria/ssr";
+import { VisuallyHidden } from "@react-aria/visually-hidden";
 import clsx from "clsx";
+import { useTheme } from "next-themes";
+import { FC } from "react";
 
-import { Sun, Moon } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 
 export interface ThemeSwitchProps {
   className?: string;
@@ -35,7 +35,12 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className, classNames }) => 
   return (
     <Component
       {...getBaseProps({
-        className: clsx("px-px transition-opacity hover:opacity-80 cursor-pointer", className, classNames?.base),
+        className: clsx(
+          "px-px transition-all duration-300 cursor-pointer hover:opacity-80",
+          "text-foreground/80 hover:text-foreground",
+          className,
+          classNames?.base
+        ),
       })}
     >
       <VisuallyHidden>
@@ -46,15 +51,12 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className, classNames }) => 
         className={slots.wrapper({
           class: clsx(
             [
-              "w-auto h-auto",
+              "w-8 h-8", // Set explicit width and height to ensure circular shape
               "bg-transparent",
-              "rounded-lg",
+              "rounded-full", // Ensure the shape is circular
               "flex items-center justify-center",
               "group-data-[selected=true]:bg-transparent",
               "!text-default-500",
-              "pt-px",
-              "px-0",
-              "mx-0",
             ],
             classNames?.wrapper
           ),

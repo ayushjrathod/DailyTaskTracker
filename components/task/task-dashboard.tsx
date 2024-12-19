@@ -3,7 +3,7 @@
 import type { Task } from "@/types/tasks";
 
 import { Button, Input } from "@nextui-org/react";
-import { Edit3, Trash2, X, Plus, Minus } from "lucide-react";
+import { Edit3, Minus, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { CustomCheckbox } from "@/components/ui/custom-checkbox";
