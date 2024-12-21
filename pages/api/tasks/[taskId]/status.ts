@@ -20,6 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       task.status[date] = status;
 
+      // Ensure frequency is not altered
       await updateTaskStatus(taskId as string, task.status);
 
       return res.status(200).json({ message: "Task status updated successfully" });

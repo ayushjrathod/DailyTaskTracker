@@ -21,6 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const updatedTask: Task = await updateTaskName(taskId as string, name, frequency);
 
+      // Ensure frequency is included in the response
       return res.status(200).json(updatedTask);
     } catch (error) {
       console.error("Error updating task name:", error);

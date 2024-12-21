@@ -31,6 +31,10 @@ async function fetchTasksFromDB() {
       id: task._id.toString(),
       name: task.name,
       status: task.status,
+      frequency: task.frequency || { type: "daily" }, // Added frequency
+      // Ensure necessary fields for specific frequencies
+      ...(task.frequency?.type === "weekly" && { daysOfWeek: task.frequency.daysOfWeek || [] }),
+      ...(task.frequency?.type === "monthly" && { datesOfMonth: task.frequency.datesOfMonth || [] }),
     }));
   } catch (error) {
     console.error("Error fetching tasks:", error);
