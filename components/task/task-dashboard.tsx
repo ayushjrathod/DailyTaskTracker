@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { CustomCheckbox } from "@/components/ui/custom-checkbox";
 import { formatDate, getDaysArray } from "@/utils/date";
 import { AnimatePresence, motion } from "framer-motion";
+import Loader from "@/app/loader";
 
 async function fetchTasks() {
   const response = await fetch("/api/tasks");
@@ -26,6 +27,7 @@ export default function TasksDashboard() {
   const [isInputVisible, setIsInputVisible] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -44,10 +46,13 @@ export default function TasksDashboard() {
   useEffect(() => {
     async function loadTasks() {
       try {
+        setIsLoading(true);
         const fetchedTasks = await fetchTasks();
         setTasks(fetchedTasks);
       } catch (error) {
         console.error(error);
+      } finally {
+        setIsLoading(false);
       }
     }
     if (mounted) {
@@ -138,8 +143,12 @@ export default function TasksDashboard() {
     }
   };
 
-  if (!mounted) {
-    return null;
+  if (!mounted || isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader />
+      </div>
+    );
   }
 
   return (
@@ -156,7 +165,6 @@ export default function TasksDashboard() {
           </h1>
           <Button
             size="sm"
-            auto
             className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-300"
             onClick={toggleEditing}
           >
@@ -203,7 +211,6 @@ export default function TasksDashboard() {
                         {isEditing && (
                           <Button
                             size="sm"
-                            auto
                             className="text-red-500 hover:text-red-700 transition-colors duration-300"
                             onClick={() => removeTask(task.id)}
                           >
@@ -248,7 +255,6 @@ export default function TasksDashboard() {
             >
               <div className="flex gap-2 items-center w-full">
                 <Button
-                  auto
                   className="bg-gray-200 dark:bg-gray-700 rounded-full p-2 transition-all duration-300 hover:scale-110"
                   onClick={toggleInputVisibility}
                 >
@@ -275,7 +281,6 @@ export default function TasksDashboard() {
                         onKeyPress={(e) => e.key === "Enter" && addTask()}
                       />
                       <Button
-                        auto
                         className="bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 transition-all duration-300"
                         onClick={addTask}
                       >
