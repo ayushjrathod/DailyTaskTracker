@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 
 import { CustomCheckbox } from "@/components/ui/custom-checkbox";
 import { formatDate, getDaysArray } from "@/utils/date";
+import { AnimatePresence, motion } from "framer-motion";
 
 async function fetchTasks() {
   const response = await fetch("/api/tasks");
@@ -44,7 +45,6 @@ export default function TasksDashboard() {
     async function loadTasks() {
       try {
         const fetchedTasks = await fetchTasks();
-
         setTasks(fetchedTasks);
       } catch (error) {
         console.error(error);
@@ -107,7 +107,6 @@ export default function TasksDashboard() {
 
         if (response.ok) {
           const savedTask = await response.json();
-
           console.log("Task added successfully:", savedTask);
           setTasks([...tasks, savedTask]);
           setNewTask("");
@@ -130,7 +129,6 @@ export default function TasksDashboard() {
       if (response.ok) {
         console.log("Task deleted successfully");
         const updatedTasks = tasks.filter((task) => task.id !== id);
-
         setTasks(updatedTasks);
       } else {
         console.error("Failed to delete task:", response.statusText);
@@ -145,28 +143,41 @@ export default function TasksDashboard() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="rounded-lg border bg-card">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h1 className="text-xl font-bold">Daily Tasks</h1>
-          <Button size="sm" variant="ghost" onClick={toggleEditing}>
-            {isEditing ? <X className="h-4 w-4" /> : <Edit3 className="h-4 w-4" />}
+    <div className="container mx-auto p-4 max-w-6xl">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="rounded-xl border bg-white dark:bg-gray-800 shadow-lg overflow-hidden"
+      >
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            Daily Tasks
+          </h1>
+          <Button
+            size="sm"
+            auto
+            className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-300"
+            onClick={toggleEditing}
+          >
+            {isEditing ? <X className="h-5 w-5" /> : <Edit3 className="h-5 w-5" />}
           </Button>
         </div>
 
-        <div className="p-4 space-y-4">
+        <div className="p-6 space-y-6">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b">
-                  <th className="p-4 text-left font-medium">Task Name</th>
+                <tr className="bg-gray-50 dark:bg-gray-700">
+                  <th className="p-4 text-left font-semibold text-gray-600 dark:text-gray-200">Task Name</th>
                   {days.map((day) => {
                     const isToday = day.toDateString() === new Date().toDateString();
-
                     return (
                       <th
                         key={day.toISOString()}
-                        className={`py-4 text-center font-medium ${isToday ? "bg-blue-50 dark:bg-blue-900/20" : ""}`}
+                        className={`py-4 px-2 text-center font-semibold text-gray-600 dark:text-gray-200 ${
+                          isToday ? "bg-blue-50 dark:bg-blue-900/40" : ""
+                        }`}
                       >
                         {formatDate(day)}
                       </th>
@@ -175,72 +186,109 @@ export default function TasksDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {tasks.map((task) => (
-                  <tr key={task.id} className="border-b last:border-0">
-                    <td className="p-4 flex justify-between items-center">
-                      {task.name}
-                      {isEditing && (
-                        <Button size="sm" variant="light" onClick={() => removeTask(task.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </td>
-                    {days.map((day) => {
-                      const date = formatDate(day);
-                      const status = task.status[date];
-                      const isToday = day.toDateString() === new Date().toDateString();
+                <AnimatePresence>
+                  {tasks.map((task, index) => (
+                    <motion.tr
+                      key={task.id}
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      className={`border-b border-gray-200 dark:border-gray-700 ${
+                        index % 2 === 0 ? "bg-gray-50 dark:bg-gray-800/50" : ""
+                      }`}
+                    >
+                      <td className="p-4 flex justify-between items-center">
+                        <span className="font-medium text-gray-700 dark:text-gray-300">{task.name}</span>
+                        {isEditing && (
+                          <Button
+                            size="sm"
+                            auto
+                            className="text-red-500 hover:text-red-700 transition-colors duration-300"
+                            onClick={() => removeTask(task.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </td>
+                      {days.map((day) => {
+                        const date = formatDate(day);
+                        const status = task.status[date];
+                        const isToday = day.toDateString() === new Date().toDateString();
 
-                      return (
-                        <td
-                          key={day.toISOString()}
-                          className={`px-20 py-4 text-center ${isToday ? "bg-blue-50 dark:bg-blue-900/20" : ""}`}
-                        >
-                          <CustomCheckbox
-                            checked={status === "completed"}
-                            id={`${task.id}-${date}`}
-                            onChange={(checked) => {
-                              updateTaskStatus(task.id, date, checked ? "completed" : "failed");
-                            }}
-                          />
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
+                        return (
+                          <td
+                            key={day.toISOString()}
+                            className={`px-6 py-4 text-center ${isToday ? "bg-blue-50 dark:bg-blue-900/40" : ""}`}
+                          >
+                            <CustomCheckbox
+                              checked={status === "completed"}
+                              onChange={(checked) => {
+                                updateTaskStatus(task.id, date, checked ? "completed" : "failed");
+                              }}
+                              id={`${task.id}-${date}`}
+                              onLabel="Done"
+                              offLabel="Todo"
+                            />
+                          </td>
+                        );
+                      })}
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
               </tbody>
             </table>
           </div>
           {isEditing && (
-            <div className="flex flex-col items-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="mt-6"
+            >
               <div className="flex gap-2 items-center w-full">
-                <button className="bg-gray-200 dark:bg-gray-700 rounded-3xl px-6 py-2" onClick={toggleInputVisibility}>
-                  {isInputVisible ? (
-                    <Minus className="h-4 w-4 text-black dark:text-white" />
-                  ) : (
-                    <Plus className="h-4 w-4 text-black dark:text-white" />
-                  )}
-                </button>
-                <div
-                  className={`overflow-hidden transition-all duration-300 ${
-                    isInputVisible ? "max-h-40 opacity-100 flex w-full" : "max-h-0 opacity-0 hidden"
-                  } items-center gap-2`}
+                <Button
+                  auto
+                  className="bg-gray-200 dark:bg-gray-700 rounded-full p-2 transition-all duration-300 hover:scale-110"
+                  onClick={toggleInputVisibility}
                 >
-                  <Input
-                    className="w-full"
-                    placeholder="Add new task"
-                    value={newTask}
-                    onChange={(e) => setNewTask(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && addTask()}
-                  />
-                  <Button className="w-18" onClick={addTask}>
-                    Add Task
-                  </Button>
-                </div>
+                  {isInputVisible ? (
+                    <Minus className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                  ) : (
+                    <Plus className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                  )}
+                </Button>
+                <AnimatePresence>
+                  {isInputVisible && (
+                    <motion.div
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: "100%" }}
+                      exit={{ opacity: 0, width: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="flex items-center gap-2 w-full"
+                    >
+                      <Input
+                        className="w-full"
+                        placeholder="Add new task"
+                        value={newTask}
+                        onChange={(e) => setNewTask(e.target.value)}
+                        onKeyPress={(e) => e.key === "Enter" && addTask()}
+                      />
+                      <Button
+                        auto
+                        className="bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 transition-all duration-300"
+                        onClick={addTask}
+                      >
+                        Add Task
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

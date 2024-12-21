@@ -4,11 +4,20 @@ import { ThemeSwitch } from "@/components/theme-switch";
 import "@/styles/globals.css";
 import { NextUIProvider } from "@nextui-org/react";
 import { ThemeProvider } from "next-themes";
+import { Inter } from "next/font/google";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-background font-sans antialiased">
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className={`min-h-screen bg-background font-sans antialiased ${inter.className}`}>
         <ThemeProvider attribute="class">
           <NextUIProvider>
             <div className="relative flex flex-col min-h-screen">
