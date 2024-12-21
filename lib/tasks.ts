@@ -22,3 +22,16 @@ export async function updateTaskStatus(
   const database = client.db("dailytasktracker");
   await database.collection("tasks").updateOne({ _id: new ObjectId(taskId) }, { $set: { status } });
 }
+
+export async function updateTaskName(id: string, name: string): Promise<Task> {
+  const client = await clientPromise;
+  const database = client.db("dailytasktracker");
+  await database.collection("tasks").updateOne({ _id: new ObjectId(id) }, { $set: { name } });
+  const updatedTask = await getTaskById(id);
+
+  if (!updatedTask) {
+    throw new Error("Task not found after update");
+  }
+
+  return updatedTask;
+}

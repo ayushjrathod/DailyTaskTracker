@@ -1,11 +1,6 @@
 import { MongoClient, ObjectId } from "mongodb";
 import type { NextApiRequest, NextApiResponse } from "next";
-
-interface Task {
-  id: number;
-  name: string;
-  status: "completed" | "failed";
-}
+import type { Task } from "@/types/tasks"; // Import the shared Task interface
 
 declare global {
   // eslint-disable-next-line no-var

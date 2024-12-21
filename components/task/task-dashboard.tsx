@@ -3,7 +3,7 @@
 import type { Task } from "@/types/tasks";
 
 import { Button, Input } from "@nextui-org/react";
-import { Edit3, Minus, Plus, Trash2, X } from "lucide-react";
+import { Edit3, Minus, Plus, Trash2, X, Pencil } from "lucide-react"; // Import Pencil icon
 import { useEffect, useState } from "react";
 
 import { CustomCheckbox } from "@/components/ui/custom-checkbox";
@@ -28,6 +28,8 @@ export default function TasksDashboard() {
   const [isEditing, setIsEditing] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editedTaskName, setEditedTaskName] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -39,6 +41,39 @@ export default function TasksDashboard() {
 
   const toggleEditing = () => {
     setIsEditing(!isEditing);
+  };
+
+  const startEditing = (task: Task) => {
+    setEditingTaskId(task.id);
+    setEditedTaskName(task.name);
+  };
+
+  const cancelEditing = () => {
+    setEditingTaskId(null);
+    setEditedTaskName("");
+  };
+
+  const submitEdit = async (taskId: string) => {
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: editedTaskName }),
+      });
+
+      if (response.ok) {
+        const updatedTask = await response.json();
+        setTasks(tasks.map((task) => (task.id === taskId ? updatedTask : task)));
+        setEditingTaskId(null);
+        setEditedTaskName("");
+      } else {
+        console.error("Failed to update task:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error updating task:", error);
+    }
   };
 
   const days = getDaysArray(5); // Get the last 5 days including today
@@ -207,15 +242,54 @@ export default function TasksDashboard() {
                       }`}
                     >
                       <td className="p-4 flex justify-between items-center">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">{task.name}</span>
+                        {editingTaskId === task.id ? (
+                          <input
+                            type="text"
+                            value={editedTaskName}
+                            onChange={(e) => setEditedTaskName(e.target.value)}
+                            className="px-2 py-1 border rounded"
+                          />
+                        ) : (
+                          <span className="font-medium text-gray-700 dark:text-gray-300">{task.name}</span>
+                        )}
                         {isEditing && (
-                          <Button
-                            size="sm"
-                            className="text-red-500 hover:text-red-700 transition-colors duration-300"
-                            onClick={() => removeTask(task.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex space-x-2">
+                            {editingTaskId === task.id ? (
+                              <>
+                                <Button
+                                  size="sm"
+                                  className="bg-green-500 text-white hover:bg-green-600"
+                                  onClick={() => submitEdit(task.id)}
+                                >
+                                  Save
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  className="bg-gray-500 text-white hover:bg-gray-600"
+                                  onClick={cancelEditing}
+                                >
+                                  Cancel
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <Button
+                                  size="sm"
+                                  className="text-blue-500 hover:text-blue-700"
+                                  onClick={() => startEditing(task)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  className="text-red-500 hover:text-red-700"
+                                  onClick={() => removeTask(task.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
                         )}
                       </td>
                       {days.map((day) => {

@@ -1,5 +1,5 @@
 export interface Task {
-  id: string;
+  id: string; // Changed from number to string
   name: string;
   status: Record<string, "completed" | "failed" | "pending">;
 }
