@@ -1,6 +1,6 @@
 import { MongoClient, ObjectId } from "mongodb";
 import type { NextApiRequest, NextApiResponse } from "next";
-import type { Task } from "@/types/tasks"; // Import the shared Task interface
+import type { Task, Frequency } from "@/types/tasks"; // Import the updated Task and Frequency interfaces
 
 declare global {
   // eslint-disable-next-line no-var
@@ -49,6 +49,7 @@ async function saveTaskToDB(task: Task) {
       id: result.insertedId.toString(),
       name: task.name,
       status: task.status,
+      frequency: task.frequency,
     };
   } catch (error) {
     console.error("Error saving task:", error);
@@ -79,7 +80,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } else if (req.method === "POST") {
     try {
-      const task = req.body;
+      const task: Task = req.body;
+
+      // Ensure that frequency is properly structured
+      if (!task.frequency) {
+        task.frequency = { type: "daily" };
+      } else {
+        switch (task.frequency.type) {
+          case "weekly":
+            task.frequency.daysOfWeek = task.frequency.daysOfWeek || [];
+            break;
+          case "monthly":
+            task.frequency.datesOfMonth = task.frequency.datesOfMonth || [];
+            break;
+          default:
+            task.frequency = { type: "daily" };
+        }
+      }
+
       console.log("Received task to save:", task);
       const savedTask = await saveTaskToDB(task);
       res.status(201).json(savedTask);

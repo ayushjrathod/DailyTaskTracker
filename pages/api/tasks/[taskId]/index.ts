@@ -1,15 +1,15 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getTaskById, updateTaskName } from "@/lib/tasks"; // Adjust the import based on your project structure
-import type { Task } from "@/types/tasks"; // Import the updated Task interface
+import type { Task, Frequency } from "@/types/tasks"; // Import the updated Task and Frequency interfaces
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { taskId } = req.query;
 
   if (req.method === "PUT") {
-    const { name } = req.body;
+    const { name, frequency } = req.body;
 
-    if (!taskId || !name) {
-      return res.status(400).json({ error: "Missing taskId or name" });
+    if (!taskId || !name || !frequency) {
+      return res.status(400).json({ error: "Missing taskId, name, or frequency" });
     }
 
     try {
@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(404).json({ error: "Task not found" });
       }
 
-      const updatedTask: Task = await updateTaskName(taskId as string, name);
+      const updatedTask: Task = await updateTaskName(taskId as string, name, frequency);
 
       return res.status(200).json(updatedTask);
     } catch (error) {

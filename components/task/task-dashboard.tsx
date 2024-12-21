@@ -1,6 +1,6 @@
 "use client";
 
-import type { Task } from "@/types/tasks";
+import type { Task, Frequency } from "@/types/tasks";
 
 import { Button, Input } from "@nextui-org/react";
 import { Edit3, Minus, Plus, Trash2, X, Pencil } from "lucide-react"; // Import Pencil icon
@@ -30,6 +30,8 @@ export default function TasksDashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editedTaskName, setEditedTaskName] = useState("");
+  const [availableDays, setAvailableDays] = useState<string[]>([]);
+  const [frequency, setFrequency] = useState<Frequency>({ type: "daily" });
 
   useEffect(() => {
     setMounted(true);
@@ -53,6 +55,35 @@ export default function TasksDashboard() {
     setEditedTaskName("");
   };
 
+  const handleFrequencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedFrequency = e.target.value;
+    if (selectedFrequency === "daily") {
+      setFrequency({ type: "daily" });
+    } else if (selectedFrequency === "weekly") {
+      setFrequency({ type: "weekly", daysOfWeek: [] });
+    } else if (selectedFrequency === "monthly") {
+      setFrequency({ type: "monthly", datesOfMonth: [] });
+    }
+  };
+
+  const handleDaysOfWeekChange = (day: string) => {
+    setFrequency((prev) => {
+      if (prev.type !== "weekly") return prev;
+      const days = prev.daysOfWeek.includes(day) ? prev.daysOfWeek.filter((d) => d !== day) : [...prev.daysOfWeek, day];
+      return { ...prev, daysOfWeek: days };
+    });
+  };
+
+  const handleDatesOfMonthChange = (date: number) => {
+    setFrequency((prev) => {
+      if (prev.type !== "monthly") return prev;
+      const dates = prev.datesOfMonth.includes(date)
+        ? prev.datesOfMonth.filter((d) => d !== date)
+        : [...prev.datesOfMonth, date];
+      return { ...prev, datesOfMonth: dates };
+    });
+  };
+
   const submitEdit = async (taskId: string) => {
     try {
       const response = await fetch(`/api/tasks/${taskId}`, {
@@ -60,7 +91,7 @@ export default function TasksDashboard() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name: editedTaskName }),
+        body: JSON.stringify({ name: editedTaskName, frequency }),
       });
 
       if (response.ok) {
@@ -68,6 +99,7 @@ export default function TasksDashboard() {
         setTasks(tasks.map((task) => (task.id === taskId ? updatedTask : task)));
         setEditingTaskId(null);
         setEditedTaskName("");
+        setFrequency({ type: "daily" }); // Reset frequency
       } else {
         console.error("Failed to update task:", response.statusText);
       }
@@ -133,6 +165,7 @@ export default function TasksDashboard() {
       const task = {
         name: newTask.trim(),
         status: {},
+        frequency: frequency,
       };
 
       try {
@@ -150,6 +183,7 @@ export default function TasksDashboard() {
           console.log("Task added successfully:", savedTask);
           setTasks([...tasks, savedTask]);
           setNewTask("");
+          setFrequency({ type: "daily" }); // Reset frequency
         } else {
           console.error("Failed to add task:", response.statusText);
         }
@@ -175,6 +209,28 @@ export default function TasksDashboard() {
       }
     } catch (error) {
       console.error("Error deleting task:", error);
+    }
+  };
+
+  // Helper function to check if a task is scheduled on a given date
+  const isTaskScheduled = (task: Task, date: Date): boolean => {
+    const dayName = date.toLocaleDateString("en-US", { weekday: "long" });
+    const dateOfMonth = date.getDate();
+
+    // Provide a default frequency if undefined
+    const frequency = task.frequency || { type: "daily" };
+
+    console.log(`Checking schedule for task: ${task.name}, Date: ${formatDate(date)}, Frequency:`, frequency);
+
+    switch (frequency.type) {
+      case "daily":
+        return true;
+      case "weekly":
+        return frequency.daysOfWeek.includes(dayName);
+      case "monthly":
+        return frequency.datesOfMonth.includes(dateOfMonth);
+      default:
+        return false;
     }
   };
 
@@ -243,12 +299,64 @@ export default function TasksDashboard() {
                     >
                       <td className="p-4 flex justify-between items-center">
                         {editingTaskId === task.id ? (
-                          <input
-                            type="text"
-                            value={editedTaskName}
-                            onChange={(e) => setEditedTaskName(e.target.value)}
-                            className="px-2 py-1 border rounded"
-                          />
+                          <div className="flex flex-col w-full">
+                            <input
+                              type="text"
+                              value={editedTaskName}
+                              onChange={(e) => setEditedTaskName(e.target.value)}
+                              className="px-2 py-1 border rounded mb-2"
+                            />
+                            <div className="mb-2">
+                              <label className="mr-2">Frequency:</label>
+                              <select
+                                value={frequency.type}
+                                onChange={handleFrequencyChange}
+                                className="border rounded px-2 py-1"
+                              >
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                              </select>
+                            </div>
+                            {frequency.type === "weekly" && (
+                              <div className="mb-2">
+                                <span>Select Days of Week:</span>
+                                <div className="flex flex-wrap">
+                                  {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(
+                                    (day) => (
+                                      <label key={day} className="mr-2">
+                                        <input
+                                          type="checkbox"
+                                          checked={frequency.type === "weekly" && frequency.daysOfWeek.includes(day)}
+                                          onChange={() => handleDaysOfWeekChange(day)}
+                                          className="mr-1"
+                                        />
+                                        {day}
+                                      </label>
+                                    )
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            {frequency.type === "monthly" && (
+                              <div className="mb-2">
+                                <span>Select Dates of Month:</span>
+                                <div className="flex flex-wrap">
+                                  {Array.from({ length: 31 }, (_, i) => i + 1).map((date) => (
+                                    <label key={date} className="mr-2">
+                                      <input
+                                        type="checkbox"
+                                        checked={frequency.type === "monthly" && frequency.datesOfMonth.includes(date)}
+                                        onChange={() => handleDatesOfMonthChange(date)}
+                                        className="mr-1"
+                                      />
+                                      {date}
+                                    </label>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         ) : (
                           <span className="font-medium text-gray-700 dark:text-gray-300">{task.name}</span>
                         )}
@@ -293,25 +401,31 @@ export default function TasksDashboard() {
                         )}
                       </td>
                       {days.map((day) => {
-                        const date = formatDate(day);
-                        const status = task.status[date];
-                        const isToday = day.toDateString() === new Date().toDateString();
+                        const date = day;
+                        const isToday = date.toDateString() === new Date().toDateString();
+                        const scheduled = isTaskScheduled(task, date);
+                        const formattedDate = formatDate(date);
+                        const status = task.status[formattedDate];
 
                         return (
                           <td
-                            key={day.toISOString()}
+                            key={date.toISOString()}
                             className={`px-6 py-4 text-center ${isToday ? "bg-blue-50 dark:bg-blue-900/40" : ""}`}
                           >
-                            <CustomCheckbox
-                              checked={status === "completed"}
-                              onChange={(checked) => {
-                                updateTaskStatus(task.id, date, checked ? "completed" : "failed");
-                              }}
-                              id={`${task.id}-${date}`}
-                              onLabel="Done"
-                              offLabel="Todo"
-                              isToday={isToday}
-                            />
+                            {scheduled ? (
+                              <CustomCheckbox
+                                checked={status === "completed"}
+                                onChange={(checked) => {
+                                  updateTaskStatus(task.id, formattedDate, checked ? "completed" : "failed");
+                                }}
+                                id={`${task.id}-${formattedDate}`}
+                                onLabel="Done"
+                                offLabel="Todo"
+                                isToday={isToday}
+                              />
+                            ) : (
+                              <span className="text-gray-500 dark:text-gray-400">Break</span>
+                            )}
                           </td>
                         );
                       })}
@@ -355,6 +469,56 @@ export default function TasksDashboard() {
                         onChange={(e) => setNewTask(e.target.value)}
                         onKeyPress={(e) => e.key === "Enter" && addTask()}
                       />
+                      <div className="flex flex-col w-full">
+                        <label className="mb-2">Frequency:</label>
+                        <select
+                          value={frequency.type}
+                          onChange={handleFrequencyChange}
+                          className="border rounded px-2 py-1 mb-2"
+                        >
+                          <option value="daily">Daily</option>
+                          <option value="weekly">Weekly</option>
+                          <option value="monthly">Monthly</option>
+                        </select>
+                        {frequency.type === "weekly" && (
+                          <div className="mb-2">
+                            <span>Select Days of Week:</span>
+                            <div className="flex flex-wrap">
+                              {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(
+                                (day) => (
+                                  <label key={day} className="mr-2">
+                                    <input
+                                      type="checkbox"
+                                      checked={frequency.type === "weekly" && frequency.daysOfWeek.includes(day)}
+                                      onChange={() => handleDaysOfWeekChange(day)}
+                                      className="mr-1"
+                                    />
+                                    {day}
+                                  </label>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {frequency.type === "monthly" && (
+                          <div className="mb-2">
+                            <span>Select Dates of Month:</span>
+                            <div className="flex flex-wrap">
+                              {Array.from({ length: 31 }, (_, i) => i + 1).map((date) => (
+                                <label key={date} className="mr-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={frequency.type === "monthly" && frequency.datesOfMonth.includes(date)}
+                                    onChange={() => handleDatesOfMonthChange(date)}
+                                    className="mr-1"
+                                  />
+                                  {date}
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                       <Button
                         className="bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 transition-all duration-300"
                         onClick={addTask}

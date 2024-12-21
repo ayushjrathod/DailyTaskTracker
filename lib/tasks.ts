@@ -1,6 +1,28 @@
 import clientPromise from "@/lib/db";
-import { Task } from "@/types/tasks";
+import { Frequency, Task } from "@/types/tasks";
 import { ObjectId } from "mongodb";
+
+export async function fetchTasksFromDB() {
+  try {
+    const client = await clientPromise;
+    const database = client.db("dailytasktracker");
+    const tasksCollection = database.collection("tasks");
+    const tasks = await tasksCollection.find({}).toArray();
+    console.log("Fetched tasks from database");
+    return tasks.map((task) => ({
+      id: task._id.toString(),
+      name: task.name,
+      status: task.status,
+      frequency: task.frequency || { type: "daily" }, // Default frequency
+      // Ensure that for weekly and monthly frequencies, necessary fields are present
+      ...(task.frequency?.type === "weekly" && { daysOfWeek: task.frequency.daysOfWeek || [] }),
+      ...(task.frequency?.type === "monthly" && { datesOfMonth: task.frequency.datesOfMonth || [] }),
+    }));
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    throw error;
+  }
+}
 
 export async function getTaskById(taskId: string): Promise<Task | null> {
   const client = await clientPromise;
@@ -11,6 +33,9 @@ export async function getTaskById(taskId: string): Promise<Task | null> {
     id: task._id.toString(),
     name: task.name,
     status: task.status,
+    frequency: task.frequency || { type: "daily" }, // Default frequency
+    ...(task.frequency?.type === "weekly" && { daysOfWeek: task.frequency.daysOfWeek || [] }),
+    ...(task.frequency?.type === "monthly" && { datesOfMonth: task.frequency.datesOfMonth || [] }),
   };
 }
 
@@ -23,10 +48,14 @@ export async function updateTaskStatus(
   await database.collection("tasks").updateOne({ _id: new ObjectId(taskId) }, { $set: { status } });
 }
 
-export async function updateTaskName(id: string, name: string): Promise<Task> {
+export async function updateTaskName(id: string, name: string, frequency?: Frequency): Promise<Task> {
   const client = await clientPromise;
   const database = client.db("dailytasktracker");
-  await database.collection("tasks").updateOne({ _id: new ObjectId(id) }, { $set: { name } });
+  const updateData: Partial<Task> = { name };
+  if (frequency) {
+    updateData.frequency = frequency;
+  }
+  await database.collection("tasks").updateOne({ _id: new ObjectId(id) }, { $set: updateData });
   const updatedTask = await getTaskById(id);
 
   if (!updatedTask) {
@@ -34,4 +63,23 @@ export async function updateTaskName(id: string, name: string): Promise<Task> {
   }
 
   return updatedTask;
+}
+
+export async function saveTaskToDB(task: Task) {
+  try {
+    const client = await clientPromise;
+    const database = client.db("dailytasktracker");
+    const tasksCollection = database.collection("tasks");
+    const result = await tasksCollection.insertOne(task);
+    console.log("Task saved to database:", result.insertedId);
+    return {
+      id: result.insertedId.toString(),
+      name: task.name,
+      status: task.status,
+      frequency: task.frequency,
+    };
+  } catch (error) {
+    console.error("Error saving task:", error);
+    throw error;
+  }
 }
