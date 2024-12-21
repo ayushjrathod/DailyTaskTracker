@@ -30,17 +30,17 @@ export const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
       <input className="hidden" id={id} type="checkbox" checked={isChecked} onChange={handleChange} />
       <label
         className={`
-          block overflow-hidden h-8 rounded-full bg-gray-300 cursor-pointer
+          block overflow-hidden h-8 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer
           transition-colors duration-300 ease-in-out
-          ${isChecked ? "bg-green-400" : "bg-red-400"}
+          ${isChecked ? "bg-green-400 dark:bg-green-600" : "bg-red-400 dark:bg-red-600"}
         `}
         htmlFor={id}
       >
         <span
           className={`
             absolute top-0 left-0 flex items-center justify-center w-16 h-8 text-sm font-bold text-white
-            transition-transform duration-300 ease-in-out
-            ${isChecked ? "translate-x-0" : "translate-x-full"}
+            transition-opacity duration-300 ease-in-out
+            ${isChecked ? "opacity-100" : "opacity-0"}
           `}
         >
           {onLabel}
@@ -48,8 +48,8 @@ export const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
         <span
           className={`
             absolute top-0 left-0 flex items-center justify-center w-16 h-8 text-sm font-bold text-white
-            transition-transform duration-300 ease-in-out
-            ${isChecked ? "translate-x-full" : "translate-x-0"}
+            transition-opacity duration-300 ease-in-out
+            ${isChecked ? "opacity-0" : "opacity-100"}
           `}
         >
           {offLabel}
