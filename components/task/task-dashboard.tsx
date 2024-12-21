@@ -236,6 +236,7 @@ export default function TasksDashboard() {
                               id={`${task.id}-${date}`}
                               onLabel="Done"
                               offLabel="Todo"
+                              isToday={isToday}
                             />
                           </td>
                         );

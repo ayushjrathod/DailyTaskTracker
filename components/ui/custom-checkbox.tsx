@@ -6,6 +6,7 @@ interface CustomCheckboxProps {
   onChange?: (checked: boolean) => void;
   onLabel?: string;
   offLabel?: string;
+  isToday?: boolean;
 }
 
 export const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
@@ -14,6 +15,7 @@ export const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
   onChange,
   onLabel = "Yeah!",
   offLabel = "Nope",
+  isToday = false,
 }) => {
   const [isChecked, setIsChecked] = useState(checked);
 
@@ -25,14 +27,21 @@ export const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
     }
   };
 
+  const checkboxClasses = isToday
+    ? isChecked
+      ? "bg-green-400 dark:bg-green-600"
+      : "bg-red-400 dark:bg-red-600"
+    : isChecked
+      ? "bg-gray-300 dark:bg-gray-400"
+      : "bg-gray-500 dark:bg-gray-600";
+
   return (
     <div className="relative inline-block w-16 h-8 select-none">
       <input className="hidden" id={id} type="checkbox" checked={isChecked} onChange={handleChange} />
       <label
         className={`
-          block overflow-hidden h-8 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer
-          transition-colors duration-300 ease-in-out
-          ${isChecked ? "bg-green-400 dark:bg-green-600" : "bg-red-400 dark:bg-red-600"}
+          block overflow-hidden h-8 rounded-full cursor-pointer transition-colors duration-300 ease-in-out
+          ${checkboxClasses}
         `}
         htmlFor={id}
       >
