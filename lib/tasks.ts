@@ -13,8 +13,8 @@ export async function fetchTasksFromDB() {
       id: task._id.toString(),
       name: task.name,
       status: task.status,
-      frequency: task.frequency || { type: "daily" }, // Default frequency
-      // Ensure that for weekly and monthly frequencies, necessary fields are present
+      frequency: task.frequency || { type: "daily" }, // Ensure default frequency
+      // Ensure necessary fields for specific frequencies
       ...(task.frequency?.type === "weekly" && { daysOfWeek: task.frequency.daysOfWeek || [] }),
       ...(task.frequency?.type === "monthly" && { datesOfMonth: task.frequency.datesOfMonth || [] }),
     }));
@@ -41,11 +41,15 @@ export async function getTaskById(taskId: string): Promise<Task | null> {
 
 export async function updateTaskStatus(
   taskId: string,
-  status: Record<string, "completed" | "failed" | "pending">
+  date: string,
+  status: "completed" | "failed" | "pending"
 ): Promise<void> {
   const client = await clientPromise;
   const database = client.db("dailytasktracker");
-  await database.collection("tasks").updateOne({ _id: new ObjectId(taskId) }, { $set: { status } });
+  await database.collection("tasks").updateOne(
+    { _id: new ObjectId(taskId) },
+    { $set: { [`status.${date}`]: status } } // Update only specific date's status
+  );
 }
 
 export async function updateTaskName(id: string, name: string, frequency?: Frequency): Promise<Task> {

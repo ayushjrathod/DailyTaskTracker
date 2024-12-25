@@ -1,15 +1,15 @@
 "use client";
 
-import type { Task, Frequency } from "@/types/tasks";
+import type { Frequency, Task } from "@/types/tasks";
 
 import { Button, Input } from "@nextui-org/react";
-import { Edit3, Minus, Plus, Trash2, X, Pencil } from "lucide-react"; // Import Pencil icon
+import { Edit3, Minus, Pencil, Plus, Trash2, X } from "lucide-react"; // Import Pencil icon
 import { useEffect, useState } from "react";
 
+import Loader from "@/app/loader";
 import { CustomCheckbox } from "@/components/ui/custom-checkbox";
 import { formatDate, getDaysArray } from "@/utils/date";
 import { AnimatePresence, motion } from "framer-motion";
-import Loader from "@/app/loader";
 
 async function fetchTasks() {
   const response = await fetch("/api/tasks");
@@ -252,7 +252,7 @@ export default function TasksDashboard() {
       >
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-            Daily Tasks
+            DailyDo
           </h1>
           <Button
             size="sm"
