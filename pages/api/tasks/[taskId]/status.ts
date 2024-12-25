@@ -1,5 +1,5 @@
-import { NextApiRequest, NextApiResponse } from "next";
 import { getTaskById, updateTaskStatus } from "@/lib/tasks"; // Adjust the import based on your project structure
+import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { taskId } = req.query;
@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       task.status[date] = status;
 
       // Ensure frequency is not altered
-      await updateTaskStatus(taskId as string, task.status);
+      await updateTaskStatus(taskId as string, date, status);
 
       return res.status(200).json({ message: "Task status updated successfully" });
     } catch (error) {
