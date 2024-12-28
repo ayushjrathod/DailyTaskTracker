@@ -15,10 +15,12 @@ async function fetchTasks() {
   const response = await fetch("/api/tasks");
 
   if (!response.ok) {
+    console.error("Failed to fetch tasks:", response.statusText);
     throw new Error("Failed to fetch tasks");
   }
 
-  return response.json();
+  const data = await response.json();
+  return data;
 }
 
 export default function TasksDashboard() {
@@ -117,7 +119,7 @@ export default function TasksDashboard() {
         const fetchedTasks = await fetchTasks();
         setTasks(fetchedTasks);
       } catch (error) {
-        console.error(error);
+        console.error("Error loading tasks:", error);
       } finally {
         setIsLoading(false);
       }
@@ -128,13 +130,15 @@ export default function TasksDashboard() {
   }, [mounted]);
 
   const updateTaskStatus = async (taskId: string, date: string, status: "completed" | "failed") => {
+    const formattedDate = formatDate(new Date(date)); // Ensure date is a Date object
+
     const updatedTasks = tasks.map((task) => {
       if (task.id === taskId) {
         return {
           ...task,
           status: {
             ...task.status,
-            [date]: status,
+            [formattedDate]: status,
           },
         };
       }
@@ -149,7 +153,7 @@ export default function TasksDashboard() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ date, status }),
+        body: JSON.stringify({ date: formattedDate, status }),
       });
 
       if (!response.ok) {
@@ -269,7 +273,7 @@ export default function TasksDashboard() {
                           isToday ? "bg-blue-50 dark:bg-blue-900/40" : ""
                         }`}
                       >
-                        {formatDate(day)}
+                        {`${day.getDate()} ${day.toLocaleString("default", { month: "short" })}. ${String(day.getFullYear()).slice(-2)}`}
                       </th>
                     );
                   })}

@@ -28,6 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: "Internal server error" });
     }
   } else {
+    console.log(`Method ${req.method} not allowed at /api/tasks/${taskId}`);
     res.setHeader("Allow", ["PUT"]);
     return res.status(405).json({ error: `Method ${req.method} not allowed` });
   }

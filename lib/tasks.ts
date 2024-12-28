@@ -41,16 +41,17 @@ export async function getTaskById(taskId: string): Promise<Task | null> {
 
 export async function updateTaskStatus(
   taskId: string,
-  date: string,
+  formattedDate: string,
   status: "completed" | "failed" | "pending"
 ): Promise<void> {
   const client = await clientPromise;
   const database = client.db("dailytasktracker");
+  // Log the date to debug the issue
+  console.log("Formatted Date:", formattedDate);
 
-  await database.collection("tasks").updateOne(
-    { _id: new ObjectId(taskId) },
-    { $set: { [`status.${date}`]: status } } // Update only specific date's status
-  );
+  await database
+    .collection("tasks")
+    .updateOne({ _id: new ObjectId(taskId) }, { $set: { [`status.${formattedDate}`]: status } });
 }
 
 export async function updateTaskName(id: string, name: string, frequency?: Frequency): Promise<Task> {
@@ -84,6 +85,18 @@ export async function saveTaskToDB(task: Task) {
     };
   } catch (error) {
     console.error("Error saving task:", error);
+    throw error;
+  }
+}
+
+export async function deleteTaskFromDB(taskId: string): Promise<void> {
+  try {
+    const client = await clientPromise;
+    const database = client.db("dailytasktracker");
+    const tasksCollection = database.collection("tasks");
+    await tasksCollection.deleteOne({ _id: new ObjectId(taskId) });
+  } catch (error) {
+    console.error("Error deleting task:", error);
     throw error;
   }
 }

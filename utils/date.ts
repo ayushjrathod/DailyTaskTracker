@@ -1,8 +1,9 @@
 export function formatDate(date: Date): string {
-  const day = date.getDate().toString().padStart(2, "0");
-  const month = date.toLocaleString("en-US", { month: "short" });
-  const year = date.getFullYear().toString().slice(-2);
-  return `${day} ${month}. ${year}`;
+  // Formats the date to 'YYYY-MM-DD'
+  const year = date.getFullYear();
+  const month = `0${date.getMonth() + 1}`.slice(-2);
+  const day = `0${date.getDate()}`.slice(-2);
+  return `${year}-${month}-${day}`;
 }
 
 export function getDaysArray(count: number): Date[] {
