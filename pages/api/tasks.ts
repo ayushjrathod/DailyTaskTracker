@@ -1,6 +1,6 @@
+import type { Task } from "@/types/tasks"; // Import the updated Task and Frequency interfaces
 import { MongoClient, ObjectId } from "mongodb";
 import type { NextApiRequest, NextApiResponse } from "next";
-import type { Task, Frequency } from "@/types/tasks"; // Import the updated Task and Frequency interfaces
 
 declare global {
   // eslint-disable-next-line no-var
@@ -26,7 +26,6 @@ async function fetchTasksFromDB() {
     const database = client.db("dailytasktracker");
     const tasksCollection = database.collection("tasks");
     const tasks = await tasksCollection.find({}).toArray();
-    console.log("Fetched tasks from database");
     return tasks.map((task) => ({
       id: task._id.toString(),
       name: task.name,
@@ -48,7 +47,6 @@ async function saveTaskToDB(task: Task) {
     const database = client.db("dailytasktracker");
     const tasksCollection = database.collection("tasks");
     const result = await tasksCollection.insertOne(task);
-    console.log("Task saved to database:", result.insertedId);
     return {
       id: result.insertedId.toString(),
       name: task.name,
@@ -67,7 +65,6 @@ async function deleteTaskFromDB(id: string) {
     const database = client.db("dailytasktracker");
     const tasksCollection = database.collection("tasks");
     const result = await tasksCollection.deleteOne({ _id: new ObjectId(id) });
-    console.log(`Task deleted from database (${id}):`, result.deletedCount);
   } catch (error) {
     console.error("Error deleting task:", error);
     throw error;
@@ -102,7 +99,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
 
-      console.log("Received task to save:", task);
       const savedTask = await saveTaskToDB(task);
       res.status(201).json(savedTask);
     } catch (error) {
@@ -112,7 +108,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else if (req.method === "DELETE") {
     try {
       const { id } = req.query;
-      console.log("Received task ID to delete:", id);
 
       if (!id || Array.isArray(id)) {
         throw new Error("Invalid task ID");

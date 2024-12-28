@@ -8,7 +8,7 @@ export async function fetchTasksFromDB() {
     const database = client.db("dailytasktracker");
     const tasksCollection = database.collection("tasks");
     const tasks = await tasksCollection.find({}).toArray();
-    console.log("Fetched tasks from database");
+    ("Fetched tasks from database");
     return tasks.map((task) => ({
       id: task._id.toString(),
       name: task.name,
@@ -46,6 +46,7 @@ export async function updateTaskStatus(
 ): Promise<void> {
   const client = await clientPromise;
   const database = client.db("dailytasktracker");
+
   await database.collection("tasks").updateOne(
     { _id: new ObjectId(taskId) },
     { $set: { [`status.${date}`]: status } } // Update only specific date's status
@@ -75,7 +76,6 @@ export async function saveTaskToDB(task: Task) {
     const database = client.db("dailytasktracker");
     const tasksCollection = database.collection("tasks");
     const result = await tasksCollection.insertOne(task);
-    console.log("Task saved to database:", result.insertedId);
     return {
       id: result.insertedId.toString(),
       name: task.name,

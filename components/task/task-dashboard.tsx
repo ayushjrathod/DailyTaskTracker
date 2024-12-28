@@ -169,7 +169,6 @@ export default function TasksDashboard() {
       };
 
       try {
-        console.log("Adding new task:", task);
         const response = await fetch("/api/tasks", {
           method: "POST",
           headers: {
@@ -180,7 +179,6 @@ export default function TasksDashboard() {
 
         if (response.ok) {
           const savedTask = await response.json();
-          console.log("Task added successfully:", savedTask);
           setTasks([...tasks, savedTask]);
           setNewTask("");
           setFrequency({ type: "daily" }); // Reset frequency
@@ -195,13 +193,11 @@ export default function TasksDashboard() {
 
   const removeTask = async (id: string) => {
     try {
-      console.log("Deleting task:", id);
       const response = await fetch(`/api/tasks?id=${id}`, {
         method: "DELETE",
       });
 
       if (response.ok) {
-        console.log("Task deleted successfully");
         const updatedTasks = tasks.filter((task) => task.id !== id);
         setTasks(updatedTasks);
       } else {
@@ -219,8 +215,6 @@ export default function TasksDashboard() {
 
     // Provide a default frequency if undefined
     const frequency = task.frequency || { type: "daily" };
-
-    console.log(`Checking schedule for task: ${task.name}, Date: ${formatDate(date)}, Frequency:`, frequency);
 
     switch (frequency.type) {
       case "daily":
@@ -248,27 +242,24 @@ export default function TasksDashboard() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="rounded-xl border bg-white dark:bg-gray-800 shadow-lg overflow-hidden"
+        className="rounded-xl bg-white dark:bg-[#262626]  shadow-lg overflow-hidden"
       >
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-            DailyDo
-          </h1>
+        <div className="absolute top-2 right-2">
           <Button
             size="sm"
-            className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-300"
+            className=" text-gray-700 dark:text-gray-300 transition-colors duration-300"
             onClick={toggleEditing}
           >
             {isEditing ? <X className="h-5 w-5" /> : <Edit3 className="h-5 w-5" />}
           </Button>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="space-y-6">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50 dark:bg-gray-700">
-                  <th className="p-4 text-left font-semibold text-gray-600 dark:text-gray-200">Task Name</th>
+                <tr className="dark:bg-[#1E1E1E]">
+                  <th className="p-4 text-left font-semibold text-gray-800 dark:text-gray-100">Task Name</th>
                   {days.map((day) => {
                     const isToday = day.toDateString() === new Date().toDateString();
                     return (
@@ -293,9 +284,7 @@ export default function TasksDashboard() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
-                      className={`border-b border-gray-200 dark:border-gray-700 ${
-                        index % 2 === 0 ? "bg-gray-50 dark:bg-gray-800/50" : ""
-                      }`}
+                      className="dark:bg-[#1E1E1E]"
                     >
                       <td className="p-4 flex justify-between items-center">
                         {editingTaskId === task.id ? (
@@ -304,14 +293,14 @@ export default function TasksDashboard() {
                               type="text"
                               value={editedTaskName}
                               onChange={(e) => setEditedTaskName(e.target.value)}
-                              className="px-2 py-1 border rounded mb-2"
+                              className="px-2 py-1 rounded mb-2"
                             />
                             <div className="mb-2">
                               <label className="mr-2">Frequency:</label>
                               <select
                                 value={frequency.type}
                                 onChange={handleFrequencyChange}
-                                className="border rounded px-2 py-1"
+                                className="rounded px-2 py-1"
                               >
                                 <option value="daily">Daily</option>
                                 <option value="weekly">Weekly</option>
@@ -474,7 +463,7 @@ export default function TasksDashboard() {
                         <select
                           value={frequency.type}
                           onChange={handleFrequencyChange}
-                          className="border rounded px-2 py-1 mb-2"
+                          className="rounded px-2 py-1 mb-2"
                         >
                           <option value="daily">Daily</option>
                           <option value="weekly">Weekly</option>
