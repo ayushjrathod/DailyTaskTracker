@@ -2,7 +2,7 @@
 
 import type { Frequency, Task } from "@/types/tasks";
 
-import { Button, Input } from "@nextui-org/react";
+import { Button, Card, CardBody, Input } from "@nextui-org/react";
 import { Edit3, Minus, Pencil, Plus, Trash2, X } from "lucide-react"; // Import Pencil icon
 import { useEffect, useState } from "react";
 
@@ -34,9 +34,25 @@ export default function TasksDashboard() {
   const [editedTaskName, setEditedTaskName] = useState("");
   const [availableDays, setAvailableDays] = useState<string[]>([]);
   const [frequency, setFrequency] = useState<Frequency>({ type: "daily" });
+  const [quote, setQuote] = useState("");
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    setIsVisible(true);
+  }, []);
+
+  useEffect(() => {
+    async function fetchQuote() {
+      try {
+        const res = await fetch("https://quotes-api-self.vercel.app/quote");
+        const data = await res.json();
+        setQuote(data.quote);
+      } catch (error) {
+        console.error("Failed to fetch quote", error);
+      }
+    }
+    fetchQuote();
   }, []);
 
   const toggleInputVisibility = () => {
@@ -248,6 +264,13 @@ export default function TasksDashboard() {
         transition={{ duration: 0.5 }}
         className="rounded-xl bg-white dark:bg-[#262626]  shadow-lg overflow-hidden"
       >
+        <Card className="mb-4">
+          <CardBody className="px-4 py-2">
+            <p className={`text-lg italic transition-opacity duration-500 ${isVisible ? "opacity-100" : "opacity-0"}`}>
+              "{quote}"
+            </p>
+          </CardBody>
+        </Card>
         <div className="absolute top-2 right-2">
           <Button
             size="sm"
